@@ -1,0 +1,14 @@
+{
+  "name": "scrollgate",
+  "version": "1.0.0",
+  "description": "ScrollGate App",
+  "main": "index.js",
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0"
+  },
+  "scripts": {
+    "build": "echo 'No web build step required'"
+  }
+}
