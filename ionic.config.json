@@ -1,0 +1,7 @@
+{
+  "name": "ScrollGate",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}
