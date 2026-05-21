@@ -9,6 +9,6 @@
     "@capacitor/core": "^6.0.0"
   },
   "scripts": {
-    "build": "echo 'No web build step required'"
+    "build": "mkdir -p www"
   }
 }
