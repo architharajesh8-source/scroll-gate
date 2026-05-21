@@ -1,0 +1,6 @@
+{
+  "appId": "com.yourname.scrollgate",
+  "appName": "ScrollGate",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
