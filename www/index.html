@@ -2,289 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScrollGate Prototype</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ScrollGate</title>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0d0e12; color: #ffffff; }
+        /* Baseline App Styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { width: 100%; height: 100%; background-color: #000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #fff; overflow: hidden; }
+        .hidden { display: none !important; }
+
+        /* --- SCREEN 1: THE QUIZ DESIGN --- */
+        #quiz-screen { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px; background: linear-gradient(135deg, #111 0%, #222 100%); }
+        .quiz-card { background: rgba(255, 255, 255, 0.05); padding: 25px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; max-width: 400px; text-align: center; }
+        .quiz-title { font-size: 24px; font-weight: 700; margin-bottom: 15px; color: #00f2fe; }
+        .quiz-question { font-size: 18px; margin-bottom: 25px; line-height: 1.4; }
+        .option-btn { width: 100%; padding: 14px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.1); border: none; border-radius: 8px; color: #fff; font-size: 16px; cursor: pointer; transition: background 0.2s; text-align: left; }
+        .option-btn:hover { background: rgba(0, 242, 254, 0.2); }
+
+        /* --- SCREEN 2: THE VERTICAL FEED DESIGN --- */
+        #feed-screen { width: 100%; height: 100%; position: relative; }
+        .feed-container { width: 100%; height: 100%; overflow-y: scroll; snap-type: y mandatory; scroll-behavior: smooth; }
+        .feed-container::-webkit-scrollbar { display: none; } /* Hide layout clutter */
+        
+        .video-post { width: 100%; height: 100%; snap-align: start; position: relative; background: #111; display: flex; justify-content: center; align-items: center; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Overlay UI Elements over Video */
+        .video-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); pointer-events: none; }
+        .creator-tag { font-weight: 700; margin-bottom: 8px; font-size: 16px; }
+        .video-desc { font-size: 14px; opacity: 0.9; margin-bottom: 40px; line-height: 1.3; }
+        .action-steps { background: rgba(0, 242, 254, 0.2); border-left: 4px solid #00f2fe; padding: 10px; border-radius: 4px; margin-top: 8px; font-size: 13px; font-weight: 600; }
+
+        /* Sidebar Actions Interaction Row */
+        .sidebar-actions { position: absolute; right: 15px; bottom: 100px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .action-icon { width: 45px; height: 45px; background: rgba(0,0,0,0.5); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body>
 
-    <!-- Mobile Frame Wrapper -->
-    <div class="w-full max-w-md bg-[#161820] rounded-[40px] shadow-2xl border border-gray-800 overflow-hidden relative" style="height: 750px;">
-        
-        <!-- QUIZ CONTAINER -->
-        <div id="quiz-container" class="h-full flex flex-col justify-between p-6">
-            <!-- Progress Bar -->
-            <div>
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs font-semibold text-purple-400 tracking-wider uppercase" id="step-indicator">Step 1 of 5</span>
-                    <span class="text-xs text-gray-400" id="step-percentage">20% Complete</span>
-                </div>
-                <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
-                    <div id="progress-bar" class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full w-1/5 transition-all duration-300"></div>
-                </div>
-            </div>
-
-            <!-- Quiz Steps -->
-            <div class="flex-grow flex flex-col justify-center my-6">
-                
-                <!-- Step 1: The Vision -->
-                <div id="step-1" class="quiz-step">
-                    <h2 class="text-2xl font-extrabold text-white mb-3">What is your big goal? 🎯</h2>
-                    <p class="text-gray-400 text-sm mb-5">Describe what you want to achieve in your own words. Be specific!</p>
-                    <textarea id="goal-input" rows="4" class="w-full bg-[#1e2230] border border-gray-700 rounded-2xl p-4 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors" placeholder="e.g., I want to build a fully automated dropshipping business and hit $5k/month..."></textarea>
-                </div>
-
-                <!-- Step 2: The Habit -->
-                <div id="step-2" class="quiz-step hidden">
-                    <h2 class="text-2xl font-extrabold text-white mb-3">Rate your addiction 📱</h2>
-                    <p class="text-gray-400 text-sm mb-8">How severe is your daily scrolling habit right now?</p>
-                    <div class="text-center mb-4">
-                        <span id="slider-val" class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">5</span>
-                        <p id="slider-label" class="text-purple-300 text-sm font-semibold mt-2">Moderate Doomscroller</p>
-                    </div>
-                    <input type="range" id="habit-slider" min="1" max="10" value="5" class="w-full accent-purple-500 h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer">
-                </div>
-
-                <!-- Step 3: Target Apps -->
-                <div id="step-3" class="quiz-step hidden">
-                    <h2 class="text-2xl font-extrabold text-white mb-3">Choose the culprits 🔒</h2>
-                    <p class="text-gray-400 text-sm mb-5">Which apps completely steal your time?</p>
-                    <div class="space-y-3">
-                        <label class="flex items-center justify-between bg-[#1e2230] p-4 rounded-2xl cursor-pointer border border-transparent hover:border-gray-700 transition-all">
-                            <span class="font-semibold text-gray-200">Instagram / Reels</span>
-                            <input type="checkbox" name="apps" value="Instagram" class="w-5 h-5 accent-purple-500 rounded">
-                        </label>
-                        <label class="flex items-center justify-between bg-[#1e2230] p-4 rounded-2xl cursor-pointer border border-transparent hover:border-gray-700 transition-all">
-                            <span class="font-semibold text-gray-200">TikTok</span>
-                            <input type="checkbox" name="apps" value="TikTok" class="w-5 h-5 accent-purple-500 rounded">
-                        </label>
-                        <label class="flex items-center justify-between bg-[#1e2230] p-4 rounded-2xl cursor-pointer border border-transparent hover:border-gray-700 transition-all">
-                            <span class="font-semibold text-gray-200">YouTube Shorts</span>
-                            <input type="checkbox" name="apps" value="YouTube" class="w-5 h-5 accent-purple-500 rounded">
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Step 4: Obstacles -->
-                <div id="step-4" class="quiz-step hidden">
-                    <h2 class="text-2xl font-extrabold text-white mb-3">Your biggest roadblock 🛑</h2>
-                    <p class="text-gray-400 text-sm mb-5">What usually stops you from taking action on your goal?</p>
-                    <textarea id="obstacle-input" rows="4" class="w-full bg-[#1e2230] border border-gray-700 rounded-2xl p-4 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors" placeholder="e.g., I get overwhelmed by how big the project is, so I just open TikTok to escape the anxiety..."></textarea>
-                </div>
-
-                <!-- Step 5: Lock Level -->
-                <div id="step-5" class="quiz-step hidden">
-                    <h2 class="text-2xl font-extrabold text-white mb-3">Select lock strictness 🛡️</h2>
-                    <p class="text-gray-400 text-sm mb-5">How aggressively should ScrollGate intercept you?</p>
-                    <div class="space-y-3">
-                        <button type="button" onclick="selectStrict('Micro-Dose')" class="strict-btn w-full text-left bg-[#1e2230] p-4 rounded-2xl border border-transparent hover:border-purple-500 transition-all">
-                            <div class="font-bold text-white">Micro-Dose Mode</div>
-                            <div class="text-xs text-gray-400 mt-1">Earn 5 minutes of scroll time for every task step completed.</div>
-                        </button>
-                        <button type="button" onclick="selectStrict('Hardcore')" class="strict-btn w-full text-left bg-[#1e2230] p-4 rounded-2xl border border-transparent hover:border-purple-500 transition-all">
-                            <div class="font-bold text-white">Hardcore Mode</div>
-                            <div class="text-xs text-gray-400 mt-1">Absolute lockdown. Apps remain entirely closed until your daily goal proof is verified.</div>
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Navigation Buttons -->
-            <div class="flex gap-4">
-                <button id="back-btn" onclick="prevStep()" class="hidden w-1/3 bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 rounded-2xl transition-all">Back</button>
-                <button id="next-btn" onclick="nextStep()" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-purple-900/30">Continue</button>
-            </div>
+    <!-- SCREEN 1: DIAGNOSTIC QUIZ -->
+    <div id="quiz-screen">
+        <div class="quiz-card">
+            <div class="quiz-title">ScrollGate</div>
+            <div id="question-text" class="quiz-question">Loading your onboarding map...</div>
+            <div id="options-container"></div>
         </div>
-
-        <!-- THE TOMB SCREEN (LOCKED INTERCEPT) -->
-        <div id="tomb-container" class="hidden h-full flex flex-col justify-between p-6 bg-gradient-to-b from-[#11051c] to-[#0d0e12]">
-            <div class="text-center mt-8">
-                <div class="w-20 h-20 bg-red-500/10 border border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-                    <span class="text-4xl">💀</span>
-                </div>
-                <h1 class="text-3xl font-black text-red-500 tracking-tight uppercase mb-2">ACCESS DENIED</h1>
-                <p class="text-gray-400 text-sm">ScrollGate has intercepted your phone.</p>
-            </div>
-
-            <div class="bg-[#1a1326] border border-purple-500/20 rounded-3xl p-5 my-4">
-                <p class="text-xs font-semibold text-purple-400 tracking-wider uppercase mb-2">Your Absolute Commitment:</p>
-                <p id="tomb-goal-display" class="text-white font-medium italic text-sm">"Goal displays here..."</p>
-                <div class="mt-4 pt-4 border-t border-purple-500/10">
-                    <p class="text-xs font-semibold text-orange-400 tracking-wider uppercase mb-1">Your Stated Trap:</p>
-                    <p id="tomb-obstacle-display" class="text-gray-300 text-xs">"Obstacle displays here..."</p>
-                </div>
-            </div>
-
-            <div class="space-y-3 mb-4">
-                <button onclick="revealDashboard()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-emerald-900/40 text-center">
-                    ✓ Submit Goal Proof to Unlock
-                </button>
-                <button onclick="alert('Good choice. Put the phone down.')" class="w-full bg-gray-900/80 hover:bg-gray-900 border border-gray-800 text-gray-400 font-semibold py-3 rounded-2xl transition-all text-sm">
-                    Lock Screen & Walk Away
-                </button>
-            </div>
-        </div>
-
-        <!-- APP DASHBOARD COMPONENT -->
-        <div id="dashboard-container" class="hidden h-full flex flex-col justify-between p-6 bg-[#0d0e12]">
-            <div>
-                <!-- Header -->
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 class="text-2xl font-black text-white">ScrollGate</h2>
-                        <p class="text-xs text-gray-400">Control Panel Active</p>
-                    </div>
-                    <span class="bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1.5 rounded-full font-bold border border-emerald-500/20">System Locked</span>
-                </div>
-
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-2 gap-3 mb-6">
-                    <div class="bg-[#161820] p-4 rounded-2xl border border-gray-800">
-                        <div class="text-gray-500 text-xs font-medium">Time Saved</div>
-                        <div class="text-2xl font-bold text-purple-400 mt-1">2h 14m</div>
-                    </div>
-                    <div class="bg-[#161820] p-4 rounded-2xl border border-gray-800">
-                        <div class="text-gray-500 text-xs font-medium">Strictness Level</div>
-                        <div id="dash-mode" class="text-lg font-bold text-indigo-400 mt-1">Hardcore</div>
-                    </div>
-                </div>
-
-                <!-- Active Intercepted Feed Simulation -->
-                <h3 class="text-xs font-bold text-gray-400 tracking-wider uppercase mb-3">Locked Applications</h3>
-                <div class="space-y-2 mb-6" id="locked-apps-list">
-                    <!-- Dynamic rendering -->
-                </div>
-            </div>
-
-            <!-- Bottom Trigger button to let them loop back if they want to test again -->
-            <button onclick="location.reload()" class="w-full bg-gray-800 text-gray-400 text-xs py-3 rounded-xl hover:bg-gray-700 transition-colors">
-                Reset System Simulator
-            </button>
-        </div>
-
     </div>
 
-    <!-- CODE SCRIPT LOGIC -->
-    <script>
-        let currentStep = 1;
-        const totalSteps = 5;
-        let selectedStrictness = 'Hardcore';
+    <!-- SCREEN 2: DOOM-SCROLL REPLACEMENT FEED -->
+    <div id="feed-screen" class="hidden">
+        <div class="feed-container" id="video-feed">
+            <!-- Dynamic Video Posts will inject here via script -->
+        </div>
+    </div>
 
-        // Slider real-time updating
-        const slider = document.getElementById('habit-slider');
-        const sliderVal = document.getElementById('slider-val');
-        const sliderLabel = document.getElementById('slider-label');
-
-        slider.addEventListener('input', (e) => {
-            const val = e.target.value;
-            sliderVal.innerText = val;
-            if(val <= 3) {
-                sliderLabel.innerText = "Casual Scroller";
-                sliderLabel.className = "text-green-400 text-sm font-semibold mt-2";
-            } else if(val <= 7) {
-                sliderLabel.innerText = "Moderate Doomscroller";
-                sliderLabel.className = "text-purple-300 text-sm font-semibold mt-2";
-            } else {
-                sliderLabel.innerText = "Terminal Brain-Rot Warning";
-                sliderLabel.className = "text-red-400 text-sm font-semibold mt-2 font-black animate-pulse";
-            }
-        });
-
-        function selectStrict(mode) {
-            selectedStrictness = mode;
-            document.querySelectorAll('.strict-btn').forEach(btn => {
-                btn.classList.remove('border-purple-500', 'bg-purple-900/10');
-            });
-            event.currentTarget.classList.add('border-purple-500', 'bg-purple-900/10');
-        }
-
-        function updateProgress() {
-            document.getElementById('step-indicator').innerText = `Step ${currentStep} of ${totalSteps}`;
-            document.getElementById('step-percentage').innerText = `${(currentStep/totalSteps) * 100}% Complete`;
-            document.getElementById('progress-bar').style.width = `${(currentStep/totalSteps) * 100}%`;
-            
-            // Toggle back button visibility
-            if(currentStep === 1) {
-                document.getElementById('back-btn').classList.add('hidden');
-                document.getElementById('next-btn').classList.remove('w-2/3');
-                document.getElementById('next-btn').classList.add('w-full');
-            } else {
-                document.getElementById('back-btn').classList.remove('hidden');
-                document.getElementById('next-btn').classList.remove('w-full');
-                document.getElementById('next-btn').classList.add('w-2/3');
-            }
-
-            if(currentStep === totalSteps) {
-                document.getElementById('next-btn').innerText = "Engage Lockout";
-            } else {
-                document.getElementById('next-btn').innerText = "Continue";
-            }
-        }
-
-        function nextStep() {
-            // If we are at the end, fire the transition straight into "The Tomb" screen layout
-            if(currentStep === totalSteps) {
-                engageTombScreen();
-                return;
-            }
-
-            document.getElementById(`step-${currentStep}`).classList.add('hidden');
-            currentStep++;
-            document.getElementById(`step-${currentStep}`).classList.remove('hidden');
-            updateProgress();
-        }
-
-        function prevStep() {
-            if(currentStep === 1) return;
-            document.getElementById(`step-${currentStep}`).classList.add('hidden');
-            currentStep--;
-            document.getElementById(`step-${currentStep}`).classList.remove('hidden');
-            updateProgress();
-        }
-
-        function engageTombScreen() {
-            // Pull the strings precisely typed by the user
-            const goalText = document.getElementById('goal-input').value || "No target goal specified. You are floating aimlessly.";
-            const obstacleText = document.getElementById('obstacle-input').value || "Letting visual media hijack your dopamine pathways.";
-            
-            document.getElementById('tomb-goal-display').innerText = `"${goalText}"`;
-            document.getElementById('tomb-obstacle-display').innerText = `"${obstacleText}"`;
-
-            // Switch layout systems completely
-            document.getElementById('quiz-container').classList.add('hidden');
-            document.getElementById('tomb-container').classList.remove('hidden');
-        }
-
-        function revealDashboard() {
-            document.getElementById('dash-mode').innerText = selectedStrictness;
-            
-            // Dynamically show the selected checked block apps
-            const checkedApps = Array.from(document.querySelectorAll('input[name="apps"]:checked')).map(cb => cb.value);
-            const appListContainer = document.getElementById('locked-apps-list');
-            appListContainer.innerHTML = '';
-
-            if(checkedApps.length === 0) checkedApps.push('Instagram', 'TikTok'); // Fallback default values
-
-            checkedApps.forEach(app => {
-                appListContainer.innerHTML += `
-                    <div class="flex items-center justify-between bg-[#161820] p-3.5 rounded-xl border border-gray-800">
-                        <div class="flex items-center gap-3">
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-                            <span class="font-semibold text-sm text-gray-300">${app}</span>
-                        </div>
-                        <span class="text-xs bg-red-500/10 text-red-400 font-bold px-2.5 py-1 rounded-md border border-red-500/20">LOCKED</span>
-                    </div>
-                `;
-            });
-
-            document.getElementById('tomb-container').classList.add('hidden');
-            document.getElementById('dashboard-container').classList.remove('hidden');
-        }
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
