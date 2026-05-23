@@ -1,36 +1,55 @@
 import React, { useState } from 'react';
 import QuizScreen from './QuizScreen';
-import { generateAIVideoPrompt } from './promptGenerator'; // <-- 1. IMPORT THE NEW GENERATOR
+import VideoPost from './VideoPost'; // <-- Import the view container
+import { mockVideoDatabase } from './mockVideos'; // <-- Import sample database
 
 export default function App() {
   const [userProfile, setUserProfile] = useState(null);
-  const [aiPrompt, setAiPrompt] = useState(""); // State to hold the final prompt string
+  const [filteredFeed, setFilteredFeed] = useState([]);
 
   const handleQuizFinished = (finalAnswers) => {
     setUserProfile(finalAnswers);
     
-    // 2. GENERATE THE AI PROMPT FROM THE ANSWERS
-    const generatedPrompt = generateAIVideoPrompt(finalAnswers);
-    setAiPrompt(generatedPrompt);
-    
-    // This logs it cleanly in your inspection console so you can see the string
-    console.log("Generated AI Video Blueprint:", generatedPrompt);
+    // Grab the primary tags the user selected
+    const selectedGoal = finalAnswers.goals?.tag;
+    const selectedStyle = finalAnswers.learning_style?.tag;
+
+    // Filter our video array to find assets matching their profile rules
+    const matches = mockVideoDatabase.filter(video => 
+      video.tags.includes(selectedGoal) || video.tags.includes(selectedStyle)
+    );
+
+    // Fallback if they put custom 'Other' inputs: show everything available for now
+    setFilteredFeed(matches.length > 0 ? matches : mockVideoDatabase);
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif', maxWidth: '500px', margin: '0 auto' }}>
-      {!userProfile ? (
-        <QuizScreen onQuizComplete={handleQuizFinished} />
-      ) : (
-        <div style={{ marginTop: '40px' }}>
-          <h1 style={{ color: '#007AFF' }}>Scroll Gate</h1>
-          <div style={{ backgroundColor: '#E3F2FD', padding: '20px', borderRadius: '8px', border: '1px solid #BBDEFB' }}>
-            <h3>Quiz Captured!</h3>
-            <p><strong>Your Dynamic Engine Prompt Blueprint:</strong></p>
-            <p style={{ fontStyle: 'italic', color: '#333', lineHeight: '1.5' }}>"{aiPrompt}"</p>
+    <div style={{ backgroundColor: '#f9f9f9', minHeight: '100vh', padding: '20px', fontFamily: 'sans-serif' }}>
+      <div style={{ maxWidth: '450px', margin: '0 auto' }}>
+        
+        {!userProfile ? (
+          <QuizScreen onQuizComplete={handleQuizFinished} />
+        ) : (
+          <div>
+            <header style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <h1 style={{ color: '#007AFF', margin: '0' }}>Scroll Gate Feed</h1>
+              <p style={{ color: '#666', fontSize: '14px' }}>Goal-oriented streams active</p>
+            </header>
+
+            {/* Loop through filtered match items and list them */}
+            {filteredFeed.map(video => (
+              <VideoPost 
+                key={video.id}
+                videoUrl={video.videoUrl}
+                title={video.title}
+                description={video.description}
+                tags={video.tags}
+              />
+            ))}
           </div>
-        </div>
-      )}
+        )}
+
+      </div>
     </div>
   );
 }
