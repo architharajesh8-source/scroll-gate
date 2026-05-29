@@ -1,55 +1,39 @@
-import React, { useState } from 'react';
-import QuizScreen from './QuizScreen';
-import VideoPost from './VideoPost'; // <-- Import the view container
-import { mockVideoDatabase } from './mockVideos'; // <-- Import sample database
+// app.js - Core App State and Screen Router
 
-export default function App() {
-  const [userProfile, setUserProfile] = useState(null);
-  const [filteredFeed, setFilteredFeed] = useState([]);
+// 1. Tracks the user's progress and quiz results
+let appState = {
+    currentScreen: 'quiz', // Starts on the quiz screen
+    userLearningStyle: null, // Will be set to 'visual', 'auditory', or 'kinesthetic'
+    userObstacle: null // Will track what blocks them (e.g., 'perfectionism', 'distraction')
+};
 
-  const handleQuizFinished = (finalAnswers) => {
-    setUserProfile(finalAnswers);
+// 2. Function to handle when the user finishes the quiz
+function handleQuizCompletion(style, obstacle) {
+    appState.userLearningStyle = style;
+    appState.userObstacle = obstacle;
     
-    // Grab the primary tags the user selected
-    const selectedGoal = finalAnswers.goals?.tag;
-    const selectedStyle = finalAnswers.learning_style?.tag;
-
-    // Filter our video array to find assets matching their profile rules
-    const matches = mockVideoDatabase.filter(video => 
-      video.tags.includes(selectedGoal) || video.tags.includes(selectedStyle)
-    );
-
-    // Fallback if they put custom 'Other' inputs: show everything available for now
-    setFilteredFeed(matches.length > 0 ? matches : mockVideoDatabase);
-  };
-
-  return (
-    <div style={{ backgroundColor: '#f9f9f9', minHeight: '100vh', padding: '20px', fontFamily: 'sans-serif' }}>
-      <div style={{ maxWidth: '450px', margin: '0 auto' }}>
-        
-        {!userProfile ? (
-          <QuizScreen onQuizComplete={handleQuizFinished} />
-        ) : (
-          <div>
-            <header style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <h1 style={{ color: '#007AFF', margin: '0' }}>Scroll Gate Feed</h1>
-              <p style={{ color: '#666', fontSize: '14px' }}>Goal-oriented streams active</p>
-            </header>
-
-            {/* Loop through filtered match items and list them */}
-            {filteredFeed.map(video => (
-              <VideoPost 
-                key={video.id}
-                videoUrl={video.videoUrl}
-                title={video.title}
-                description={video.description}
-                tags={video.tags}
-              />
-            ))}
-          </div>
-        )}
-
-      </div>
-    </div>
-  );
+    console.log(`Quiz complete! User style: ${style}, Obstacle: ${obstacle}`);
+    
+    // Switch screens instantly
+    navigateTo('videoFeed');
 }
+
+// 3. Simple router to swap what is visible on the screen
+function navigateTo(screenName) {
+    appState.currentScreen = screenName;
+    
+    if (screenName === 'videoFeed') {
+        // Hide the quiz, show the video feed, and pass the user's profile to filter videos
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('feed-container').style.display = 'block';
+        
+        // Trigger the video feed to load content matching their specific obstacle
+        if (typeof renderVideoFeed === 'function') {
+            renderVideoFeed(appState.userObstacle);
+        }
+    }
+}
+
+// Make functions globally available for your other files to call
+window.handleQuizCompletion = handleQuizCompletion;
+window.navigateTo = navigateTo;
