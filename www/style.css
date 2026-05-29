@@ -1,0 +1,163 @@
+/* style.css - Scroll Gate Mobile Interface Styling */
+
+/* 1. Resetting page defaults for a clean slate */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: #0f172a; /* Slate Dark Background */
+    color: #f8fafc; /* Crisp light text */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* 2. Constraining the app layout to a phone-sized container */
+#quiz-container, #feed-container {
+    background-color: #1e293b; /* Card grey */
+    width: 100%;
+    max-width: 420px; /* Standard smartphone width */
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    margin-top: 20px;
+}
+
+/* 3. Header Styling */
+.app-header h1, .feed-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #38bdf8; /* Sky Blue accent color */
+    margin-bottom: 8px;
+}
+
+.app-header p, .subtitle {
+    font-size: 14px;
+    color: #94a3b8; /* Muted slate text */
+    line-height: 1.4;
+}
+
+/* 4. Quiz Elements and Inputs */
+.quiz-card {
+    background-color: #0f172a;
+    border-radius: 16px;
+    padding: 16px;
+    margin: 20px 0;
+}
+
+.quiz-card h3 {
+    font-size: 16px;
+    margin-bottom: 12px;
+}
+
+#goal-input {
+    width: 100%;
+    background-color: #1e293b;
+    border: 2px solid #334155;
+    border-radius: 12px;
+    color: #f8fafc;
+    padding: 12px 16px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#goal-input:focus {
+    border-color: #38bdf8;
+}
+
+.quiz-options button {
+    width: 100%;
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    padding: 14px;
+    border-radius: 12px;
+    text-align: left;
+    margin-bottom: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.quiz-options button:hover {
+    background-color: #334155;
+    color: #f8fafc;
+}
+
+/* 5. Buttons */
+.primary-btn {
+    width: 100%;
+    background-color: #10b981; /* Emerald Productivity Green */
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    transition: background-color 0.2s;
+}
+
+.primary-btn:hover {
+    background-color: #059669;
+}
+
+/* 6. Video Feed Elements */
+.active-goal-badge {
+    display: inline-block;
+    background-color: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 6px;
+    margin-bottom: 24px;
+}
+
+.video-card {
+    background-color: #0f172a;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-left: 4px solid #10b981;
+}
+
+.video-card h3 {
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.video-card p {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.video-card p span {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.video-placeholder {
+    background-color: #1e293b;
+    border: 2px dashed #334155;
+    border-radius: 12px;
+    height: 160px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 12px;
+    color: #94a3b8;
+    font-size: 14px;
+    text-align: center;
+    padding: 10px;
+}
