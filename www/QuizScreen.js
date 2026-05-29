@@ -1,105 +1,66 @@
-// QuizScreen.js
-import React, { useState } from 'react';
-import { quizQuestions } from './quizData'; // Imports the questions we made above
+// QuizScreen.js - Quiz State and Scoring Logic
 
-export default function QuizScreen({ onQuizComplete }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [customText, setCustomText] = useState("");
+// 1. Temporary storage to keep track of the user's answers as they click through
+let quizAnswers = {
+    question1: null, // e.g., 'A', 'B', 'C'
+    question2: null,
+    question3: null
+};
 
-  const currentQuestion = quizQuestions[currentIndex];
+// 2. Track what question number the user is currently looking at
+let currentQuestionIndex = 1;
 
-  const handleSelectOption = (option) => {
-    // If they picked "Other", don't auto-advance. Wait for them to type.
-    if (option.requiresInput) {
-      setAnswers({
-        ...answers,
-        [currentQuestion.id]: { tag: option.tag, customText: "" }
-      });
-      return; 
-    }
+// 3. Called every time a user clicks an answer button
+function selectAnswer(questionNumber, chosenOption) {
+    // Save the answer (e.g., quizAnswers.question1 = 'A')
+    quizAnswers[`question${questionNumber}`] = chosenOption;
+    console.log(`Saved question ${questionNumber}: ${chosenOption}`);
+}
 
-    // Standard card path: save data and move forward
-    const updatedAnswers = {
-      ...answers,
-      [currentQuestion.id]: { tag: option.tag, customText: null }
-    };
-    setAnswers(updatedAnswers);
-    moveToNext(updatedAnswers);
-  };
+// 4. Run this when they click the "Next" or "Submit" button
+function handleNextQuestion() {
+    const totalQuestions = 3; // Total number of quiz questions you have
 
-  const handleCustomSubmit = () => {
-    if (!customText.trim()) return; // Don't allow empty text
-    
-    const updatedAnswers = {
-      ...answers,
-      [currentQuestion.id]: { 
-        tag: answers[currentQuestion.id].tag, 
-        customText: customText 
-      }
-    };
-    
-    setAnswers(updatedAnswers);
-    setCustomText(""); // Clear the text box for the next question if needed
-    moveToNext(updatedAnswers);
-  };
-
-  const moveToNext = (latestAnswers) => {
-    if (currentIndex < quizQuestions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+    if (currentQuestionIndex < totalQuestions) {
+        // Move to the next question visually
+        currentQuestionIndex++;
+        updateQuizUI(); 
     } else {
-      // Quiz is totally finished! Pass the final data up to the app
-      onQuizComplete(latestAnswers);
+        // If they just finished the last question, calculate the results!
+        calculateQuizResults();
     }
-  };
+}
 
-  // UI rendering logic for the rectangle cards
-  return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h2>{currentQuestion.title}</h2>
-      
-      {/* Container for the rectangle cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {currentQuestion.options.map((option, index) => {
-          const isSelected = answers[currentQuestion.id]?.tag === option.tag;
-          return (
-            <button
-              key={index}
-              onClick={() => handleSelectOption(option)}
-              style={{
-                padding: '15px',
-                borderRadius: '8px',
-                border: isSelected ? '2px solid #007AFF' : '1px solid #ccc',
-                backgroundColor: isSelected ? '#E3F2FD' : '#fff',
-                textAlign: 'left',
-                fontSize: '16px',
-                cursor: 'pointer'
-              }}
-            >
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
+// 5. The brain of the quiz: translates ABC answers into actual user profiles
+function calculateQuizResults() {
+    let finalStyle = 'visual'; // Default fallback
+    let finalObstacle = 'distraction'; // Default fallback
 
-      {/* Conditionally show the text box ONLY if they tapped an 'Other' option */}
-      {answers[currentQuestion.id]?.tag.includes('custom') && (
-        <div style={{ marginTop: '15px' }}>
-          <input
-            type="text"
-            placeholder="Type your goal/obstacle here..."
-            value={customText}
-            onChange={(e) => setCustomText(e.target.value)}
-            style={{ padding: '10px', width: '80%', marginRight: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-          <button 
-            onClick={handleCustomSubmit}
-            style={{ padding: '10px 15px', backgroundColor: '#007AFF', color: '#fff', border: 'none', borderRadius: '4px' }}
-          >
-            Next
-          </button>
-        </div>
-      )}
-    </div>
-  );
+    // --- SCORING LOGIC EXAMPLE ---
+    // Let's say Question 1 tracks Learning Style: A = Visual, B = Auditory
+    if (quizAnswers.question1 === 'A') {
+        finalStyle = 'visual';
+    } else if (quizAnswers.question1 === 'B') {
+        finalStyle = 'auditory';
+    }
+
+    // Let's say Question 2 tracks the Obstacle: A = Perfectionism, B = Lack of Motivation
+    if (quizAnswers.question2 === 'A') {
+        finalObstacle = 'perfectionism';
+    } else if (quizAnswers.question2 === 'B') {
+        finalObstacle = 'distraction';
+    }
+
+    // 6. Send the final results straight to the appState we just made in app.js!
+    if (typeof window.handleQuizCompletion === 'function') {
+        window.handleQuizCompletion(finalStyle, finalObstacle);
+    } else {
+        console.error("Could not find handleQuizCompletion function in app.js");
+    }
+}
+
+// 7. Stub function to handle changing the questions on screen
+function updateQuizUI() {
+    console.log(`Visually switching to question screen: ${currentQuestionIndex}`);
+    // Your UI layout rendering code will plug in here later!
 }
