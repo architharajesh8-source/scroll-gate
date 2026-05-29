@@ -1,20 +1,21 @@
-// app.js - Core App State and Screen Router
+// app.js - Updated Core App State with Custom Goal Tracking
 
-// 1. Tracks the user's progress and quiz results
+// 1. Added userGoal to track what the user is working toward
 let appState = {
-    currentScreen: 'quiz', // Starts on the quiz screen
-    userLearningStyle: null, // Will be set to 'visual', 'auditory', or 'kinesthetic'
-    userObstacle: null // Will track what blocks them (e.g., 'perfectionism', 'distraction')
+    currentScreen: 'quiz', 
+    userLearningStyle: null, 
+    userObstacle: null,
+    userGoal: "" // Stores unique goals like "lose weight" or "learn about chairs"
 };
 
-// 2. Function to handle when the user finishes the quiz
-function handleQuizCompletion(style, obstacle) {
+// 2. Updated to catch the "goal" parameter from QuizScreen.js
+function handleQuizCompletion(style, obstacle, goal) {
     appState.userLearningStyle = style;
     appState.userObstacle = obstacle;
+    appState.userGoal = goal || "My Personal Goal"; // Fallback if they left it blank
     
-    console.log(`Quiz complete! User style: ${style}, Obstacle: ${obstacle}`);
+    console.log(`Quiz complete! Goal: ${appState.userGoal}, Style: ${style}, Obstacle: ${obstacle}`);
     
-    // Switch screens instantly
     navigateTo('videoFeed');
 }
 
@@ -23,17 +24,15 @@ function navigateTo(screenName) {
     appState.currentScreen = screenName;
     
     if (screenName === 'videoFeed') {
-        // Hide the quiz, show the video feed, and pass the user's profile to filter videos
         document.getElementById('quiz-container').style.display = 'none';
         document.getElementById('feed-container').style.display = 'block';
         
-        // Trigger the video feed to load content matching their specific obstacle
+        // Pass BOTH the obstacle and the custom goal to the video feed renderer
         if (typeof renderVideoFeed === 'function') {
-            renderVideoFeed(appState.userObstacle);
+            renderVideoFeed(appState.userObstacle, appState.userGoal);
         }
     }
 }
 
-// Make functions globally available for your other files to call
 window.handleQuizCompletion = handleQuizCompletion;
 window.navigateTo = navigateTo;
