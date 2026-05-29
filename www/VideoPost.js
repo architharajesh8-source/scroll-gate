@@ -1,63 +1,75 @@
-// VideoPost.js
-import React, { useRef, useState } from 'react';
+// VideoPost.js - Master Video Database and Filtering Feed Engine
 
-export default function VideoPost({ videoUrl, title, description, tags }) {
-  const videoRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const togglePlay = () => {
-    if (isPlaying) {
-      videoRef.current.pause();
-    } else {
-      videoRef.current.play();
+// 1. The master database of videos for Scroll Gate
+const masterVideoDatabase = [
+    {
+        id: "v1",
+        title: "Overcoming Perfectionism: Just Start!",
+        duration: "0:45",
+        obstacleTag: "perfectionism",
+        videoUrl: "videos/perfectionism_tip.mp4"
+    },
+    {
+        id: "v2",
+        title: "The 5-Minute Rule for Extreme Distraction",
+        duration: "1:00",
+        obstacleTag: "distraction",
+        videoUrl: "videos/distraction_fix.mp4"
+    },
+    {
+        id: "v3",
+        title: "Why Messy Progress Beats Perfect Planning",
+        duration: "0:30",
+        obstacleTag: "perfectionism",
+        videoUrl: "videos/messy_action.mp4"
+    },
+    {
+        id: "v4",
+        title: "How to Lock Focus When Your Brain Wants to Scroll",
+        duration: "0:50",
+        obstacleTag: "distraction",
+        videoUrl: "videos/focus_hack.mp4"
     }
-    setIsPlaying(!isPlaying);
-  };
+];
 
-  return (
-    <div style={{
-      backgroundColor: '#000',
-      borderRadius: '12px',
-      overflow: 'hidden',
-      marginBottom: '20px',
-      position: 'relative',
-      boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
-    }}>
-      {/* HTML5 Video Element */}
-      <video
-        ref={videoRef}
-        src={videoUrl}
-        onClick={togglePlay}
-        loop
-        style={{ width: '100%', display: 'block', cursor: 'pointer' }}
-      />
+// 2. The core function called by app.js when switching screens
+function renderVideoFeed(userObstacle, userGoal) {
+    console.log(`Filtering video feed for obstacle: ${userObstacle}`);
 
-      {/* Play/Pause Text Overlay Indicator */}
-      {!isPlaying && (
-        <div 
-          onClick={togglePlay}
-          style={{
-            position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-            backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', padding: '15px 20px',
-            borderRadius: '50%', cursor: 'pointer', fontSize: '20px'
-          }}
-        >
-          ▶
-        </div>
-      )}
+    // Update the HTML badge at the top to show their actual custom goal
+    const goalBadge = document.getElementById('current-user-goal');
+    if (goalBadge) {
+        goalBadge.innerText = userGoal;
+    }
 
-      {/* Text Context Content Information Container */}
-      <div style={{ padding: '15px', backgroundColor: '#111', color: '#fff' }}>
-        <h3 style={{ margin: '0 0 5px 0' }}>{title}</h3>
-        <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#aaa' }}>{description}</p>
-        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-          {tags.map((tag, i) => (
-            <span key={i} style={{ backgroundColor: '#333', padding: '3px 8px', borderRadius: '4px', fontSize: '12px' }}>
-              #{tag}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+    // Find the stream container on your HTML page where videos should go
+    const videoStream = document.getElementById('video-stream');
+    
+    // Clear out any old videos or loading text
+    videoStream.innerHTML = '';
+
+    // Filter down the master array to only match what the user is struggling with
+    const filteredVideos = masterVideoDatabase.filter(video => video.obstacleTag === userObstacle);
+
+    if (filteredVideos.length === 0) {
+        videoStream.innerHTML = '<p class="no-videos">No custom videos found for your profile yet!</p>';
+        return;
+    }
+
+    // 3. Loop through the filtered list and inject them visually into the HTML
+    filteredVideos.forEach(video => {
+        const videoElement = document.createElement('div');
+        videoElement.className = 'video-card';
+        videoElement.innerHTML = `
+            <h3>${video.title}</h3>
+            <p>Duration: ${video.duration} | Tag: <span>#${video.obstacleTag}</span></p>
+            <div class="video-placeholder">
+                <p>🎥 [Video Playing: Content designed to help you with "${userGoal}"]</p>
+            </div>
+        `;
+        videoStream.appendChild(videoElement);
+    });
 }
+
+// Make the function available globally so app.js can trigger it
+window.renderVideoFeed = renderVideoFeed;
